@@ -24,10 +24,7 @@ Vector2 applePositions[APPLE_COUNT] = {0,0};
 int main() {
     SetRandomSeed(time(NULL));
     
-
-    init();
-
-
+    init(); // Initialize all game values
 
     InitWindow(SIZE, SIZE, "Snake v0.1");
     
@@ -48,13 +45,13 @@ int main() {
 
 void updateDirection() {
     if (IsKeyPressed(KEY_UP)) {
-        direction = UP;
+        if (!(snakeBody.pos[1].x == snakeBody.pos[0].x && snakeBody.pos[1].y == snakeBody.pos[0].y -1))direction = UP;
     } else if (IsKeyPressed(KEY_LEFT)) {
-        direction = LEFT;
+        if (!(snakeBody.pos[1].x == snakeBody.pos[0].x -1 && snakeBody.pos[1].y == snakeBody.pos[0].y))direction = LEFT;
     } else if (IsKeyPressed(KEY_DOWN)) {
-        direction = DOWN;
+        if (!(snakeBody.pos[1].x == snakeBody.pos[0].x && snakeBody.pos[1].y == snakeBody.pos[0].y +1))direction = DOWN;
     } else if (IsKeyPressed(KEY_RIGHT)) {
-        direction = RIGHT;
+        if (!(snakeBody.pos[1].x == snakeBody.pos[0].x +1 && snakeBody.pos[1].y == snakeBody.pos[0].y))direction = RIGHT;
     }
 
     // Else, direction can be used again

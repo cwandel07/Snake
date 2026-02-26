@@ -18,3 +18,4 @@ enum  {
 
 int findAppleIndexByPos(Vector2 v);
 Vector2 getValidApplePosition();
+
