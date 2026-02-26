@@ -19,3 +19,8 @@ enum  {
 int findAppleIndexByPos(Vector2 v);
 Vector2 getValidApplePosition();
 
+enum {
+    MENU,RUNNING,PAUSED
+} gameState;
+
+void draw();

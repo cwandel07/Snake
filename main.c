@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define GRID_SIZE 20
-#define SIZE 400
+#define GRID_SIZE 20 // For a 10x10 field, this should be set to 10!
+#define SIZE 100 // SHOULD BE GRID_SIZE * GRID_SIZE
 #define APPLE_COUNT 1
 #define START_LENGTH 3
-
+int CELL_SIZE = SIZE/GRID_SIZE;
 #define FPS 1.5
 float moveTimer = 0.0f;
 
@@ -30,15 +30,29 @@ int main() {
     
     while (!WindowShouldClose()) {
         BeginDrawing();
-            update();
-            ClearBackground(RAYWHITE);
-            drawGrid();
-            drawSnakeBody();
-            drawAllApples();
+            draw();
+            
         EndDrawing();
     }
     CloseWindow();
     return 0;
+    
+}
+
+void draw() {
+    switch (gameState)
+    {
+    case RUNNING:
+        update();
+        ClearBackground(WHITE);
+        drawSnakeBody();
+        drawAllApples();
+        drawGrid();
+        break;
+    default:
+        gameState = RUNNING;
+        break;
+    }
     
 }
 
@@ -153,9 +167,9 @@ void init() {
 
     for (int i = 0; i < snakeBody.length; i++)
     {
-        snakeBody.pos[i].x = (SIZE/GRID_SIZE)/2 -1 -i;
-        snakeBody.pos[i].y = (SIZE/GRID_SIZE)/2; 
-    } //BUG:DOESNT SHOW
+        snakeBody.pos[i].x = (GRID_SIZE)/2 -1 -i;
+        snakeBody.pos[i].y = (GRID_SIZE)/2; 
+    } 
     
     printf("Snake Body: ");
     for (int i = 0; i < snakeBody.length; i++)
@@ -177,7 +191,7 @@ void init() {
 
 // Returns: 1 if there is snake or wall, 0 if empty, -1 if apple
 int isOccupied(Vector2 pos) {
-    if (pos.x > SIZE/GRID_SIZE -1 || pos.y > SIZE/GRID_SIZE -1) return 1; // OUT OF BOUNDS
+    if (pos.x > GRID_SIZE -1 || pos.y > GRID_SIZE -1) return 1; // OUT OF BOUNDS
     if (pos.x < 0 || pos.y < 0) return 1;
     for (int i = 0; i < snakeBody.length; i++)
     {
@@ -206,7 +220,7 @@ void drawApple(Vector2 v) {
     } else if (v.y < 0) {
         fprintf(stderr, "Drawing apple out of Bounds - y ");
     } else {
-        DrawCircle(v.x*GRID_SIZE + 0.5*GRID_SIZE , v.y*GRID_SIZE + 0.5*GRID_SIZE, GRID_SIZE/2, RED);
+        DrawRectangle(v.x * CELL_SIZE, v.y * CELL_SIZE, CELL_SIZE-2, CELL_SIZE-2,RED);
     }
 }
 
@@ -221,11 +235,21 @@ void drawSnakeBody() {
 }
 
 void drawGrid() {
-    for (unsigned int i = GRID_SIZE; i < SIZE; i+=GRID_SIZE)
+    for (unsigned int i = CELL_SIZE; i < SIZE; i+=CELL_SIZE)
             {
                 DrawLine(0, i, SIZE, i, BLACK);
                 DrawLine(i, 0, i, SIZE, BLACK);
             }
+    for (unsigned int i = 0; i < GRID_SIZE; i++)
+    {
+        for (unsigned int j = 0; j < GRID_SIZE; j++)
+        {
+            DrawRectangleLines(i*CELL_SIZE+1, j*CELL_SIZE+1, CELL_SIZE-2, CELL_SIZE-2, WHITE);
+        }
+        
+    }
+    
+    
 }
 
 void drawBox(Vector2 v) {
@@ -234,7 +258,7 @@ void drawBox(Vector2 v) {
     } else if (v.y < 0) {
         fprintf(stderr, "Drawing out of Bounds - y ");
     } else {
-        DrawRectangle((float)(GRID_SIZE*v.x), (float)(GRID_SIZE*v.y), GRID_SIZE, GRID_SIZE, BLACK);
+        DrawRectangle((float)(CELL_SIZE*v.x), (float)(CELL_SIZE*v.y), CELL_SIZE, CELL_SIZE, BLACK);
     }
 }
 
