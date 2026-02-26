@@ -3,39 +3,32 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define GRID_SIZE 20
 #define SIZE 400
-
+#define APPLE_COUNT 1
+#define START_LENGTH 3
 
 #define FPS 1.5
 float moveTimer = 0.0f;
-
-
-// int main() {
-//     InitWindow(400, 400, "Snake Setup Test");
-//     while (!WindowShouldClose()) {
-//         BeginDrawing();
-//             ClearBackground(RAYWHITE);
-//             DrawText("Raylib is working!", 100, 200, 20, LIGHTGRAY);
-//         EndDrawing();
-//     }
-//     CloseWindow();
-//     return 0;
-// }
 
 struct {
     Vector2 pos[GRID_SIZE*GRID_SIZE];
     int length;
 } snakeBody;
 
+Vector2 applePositions[APPLE_COUNT] = {0,0};
+
 
 int main() {
-    init();  
-
-
-
+    SetRandomSeed(time(NULL));
     
+
+    init();
+
+
+
     InitWindow(SIZE, SIZE, "Snake v0.1");
     
     while (!WindowShouldClose()) {
@@ -44,15 +37,14 @@ int main() {
             ClearBackground(RAYWHITE);
             drawGrid();
             drawSnakeBody();
+            drawAllApples();
         EndDrawing();
     }
     CloseWindow();
     return 0;
     
 }
-enum  {
-    UP, RIGHT, DOWN, LEFT
-} direction;
+
 
 void updateDirection() {
     if (IsKeyPressed(KEY_UP)) {
@@ -96,9 +88,47 @@ void update() {
     if (moveTimer >= 1/FPS) {
         moveTimer = 0;
 
-        // Updating the Screen should only happen here!
+        // NOTE: Updating the Screen should only happen here!
+
+        //New Head Pos
         Vector2 nextHeadPos = getNextHeadPos();
+
+        // Check if there is a fail
+        switch(isOccupied(nextHeadPos)) {
+            case 0:
+                break;
+            case 1:
+                snakeBody.length = 0;
+                exit(2);
+                break;
+                //BUG:
+            case -1:
+                if (snakeBody.length == GRID_SIZE*GRID_SIZE) exit(69); //TODO: Win popup 
+                else {
+                    snakeBody.length++;
+                    snakeBody.pos[snakeBody.length -1] = snakeBody.pos[snakeBody.length-2];
+                    
+                    int appleIndex = findAppleIndexByPos(nextHeadPos);
+                    
+                    applePositions[appleIndex] = getValidApplePosition();
+                }
+                break; //TODO: CHECK FOR FUNCTION
+        }
+
+        // Move Snake
+        Vector2 tempPos = snakeBody.pos[0];
         snakeBody.pos[0] = nextHeadPos;
+        
+        for (int i = snakeBody.length; i > 1; i--)
+        {
+            snakeBody.pos[i] = snakeBody.pos[i-1];
+        }
+        snakeBody.pos[1] = tempPos;
+        
+        
+        
+
+
     }
 
     
@@ -106,7 +136,14 @@ void update() {
     
 }
 
-
+int findAppleIndexByPos(Vector2 v) {
+    for (int i = 0; i < APPLE_COUNT; i++)
+    {
+        if ((int)v.x == (int)applePositions[i].x && (int)v.y == (int)applePositions[i].y) return i;
+    } 
+    fprintf(stdout, "Invalid Apple Position supplied!");
+    exit(1);
+}
 
 void init() {
     // Set snakeBody to zeroes
@@ -115,19 +152,73 @@ void init() {
         snakeBody.pos[i].x = 0;
         snakeBody.pos[i].y = 0;
     }
-    snakeBody.length = 1;
-    snakeBody.pos[0].x = (SIZE/GRID_SIZE)/2 -1;
-    snakeBody.pos[0].y = (SIZE/GRID_SIZE)/2 -1;  
+    snakeBody.length = START_LENGTH;
+
+    for (int i = 0; i < snakeBody.length; i++)
+    {
+        snakeBody.pos[i].x = (SIZE/GRID_SIZE)/2 -1 -i;
+        snakeBody.pos[i].y = (SIZE/GRID_SIZE)/2; 
+    } //BUG:DOESNT SHOW
     
+    printf("Snake Body: ");
+    for (int i = 0; i < snakeBody.length; i++)
+    {
+        printf(" %f,%f", snakeBody.pos[i].x, snakeBody.pos[i].y);
+    }
+
+
     direction = RIGHT;
+
+    // Apples
+    for (int i = 0; i < APPLE_COUNT; i++)
+    {
+         applePositions[i] = getValidApplePosition();
+    }
+    
+
 }
 
+// Returns: 1 if there is snake or wall, 0 if empty, -1 if apple
+int isOccupied(Vector2 pos) {
+    if (pos.x > SIZE/GRID_SIZE -1 || pos.y > SIZE/GRID_SIZE -1) return 1; // OUT OF BOUNDS
+    if (pos.x < 0 || pos.y < 0) return 1;
+    for (int i = 0; i < snakeBody.length; i++)
+    {
+        if (snakeBody.pos[i].x == pos.x && snakeBody.pos[i].y == pos.y) return 1; // IS SNAKE
+    }
+
+    for (int i = 0; i < APPLE_COUNT; i++)
+    {
+        if(applePositions[i].x == pos.x && applePositions[i].y == pos.y) return -1;
+    }
+    return 0;
+    
+}
+
+
+void drawAllApples() {
+    for (int i = 0; i < APPLE_COUNT; i++)
+    {
+        drawApple(applePositions[i]);
+    }
+    
+}
+void drawApple(Vector2 v) {
+    if (v.x <0) {
+        fprintf(stderr, "Drawing apple out of Bounds - x ");
+    } else if (v.y < 0) {
+        fprintf(stderr, "Drawing apple out of Bounds - y ");
+    } else {
+        DrawCircle(v.x*GRID_SIZE + 0.5*GRID_SIZE , v.y*GRID_SIZE + 0.5*GRID_SIZE, GRID_SIZE/2, RED);
+    }
+}
 
 
 void drawSnakeBody() {
     for (int i = 0; i < snakeBody.length; i++)
     {
-        drawBox(snakeBody.pos[i].x, snakeBody.pos[i].y);
+        drawBox(snakeBody.pos[i]);
+        //printf("Drawing %i block at %.0f,%.0f", i, )
     }
     
 }
@@ -140,12 +231,32 @@ void drawGrid() {
             }
 }
 
-void drawBox(int x, int y) {
-    if (x <0) {
+void drawBox(Vector2 v) {
+    if (v.x <0) {
         fprintf(stderr, "Drawing out of Bounds - x ");
-    } else if (y < 0) {
+    } else if (v.y < 0) {
         fprintf(stderr, "Drawing out of Bounds - y ");
     } else {
-        DrawRectangle(GRID_SIZE*x, GRID_SIZE*y, GRID_SIZE, GRID_SIZE, BLACK);
+        DrawRectangle((float)(GRID_SIZE*v.x), (float)(GRID_SIZE*v.y), GRID_SIZE, GRID_SIZE, BLACK);
     }
 }
+
+int random(int min, int max) {
+    return (rand() % (max - min +1)) + min;
+}
+
+Vector2 getValidApplePosition() {
+    Vector2 randPos;
+    // Calculate max index once to avoid confusion
+    // 400 / 20 = 20, so we want indices 0 through 19
+    int maxIndex = (SIZE / GRID_SIZE) - 1; 
+
+    do {
+    // Use Raylib's GetRandomValue for guaranteed seeding and bounds
+        randPos.x = (float)GetRandomValue(0, maxIndex);
+        randPos.y = (float)GetRandomValue(0, maxIndex);
+    } while (isOccupied(randPos) != 0);
+
+    return randPos;
+}
+
