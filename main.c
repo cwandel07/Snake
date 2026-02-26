@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define GRID_SIZE 20 // For a 10x10 field, this should be set to 10!
-#define SIZE 100 // SHOULD BE GRID_SIZE * GRID_SIZE
+#define GRID_SIZE 10 // For a 10x10 field, this should be set to 10!
+#define SIZE 400 // SHOULD BE atleast GRID_SIZE * GRID_SIZE
 #define APPLE_COUNT 1
 #define START_LENGTH 3
 int CELL_SIZE = SIZE/GRID_SIZE;
 #define FPS 1.5
 float moveTimer = 0.0f;
+int finalScore = 0;
 
 struct {
     Vector2 pos[GRID_SIZE*GRID_SIZE];
@@ -43,16 +44,46 @@ void draw() {
     switch (gameState)
     {
     case RUNNING:
+        if (IsKeyPressed(KEY_SPACE)) gameState = PAUSED;
         update();
         ClearBackground(WHITE);
         drawSnakeBody();
         drawAllApples();
         drawGrid();
         break;
+    case MENU:
+        drawMenu();
+        if (IsKeyPressed(KEY_ENTER)) gameState = RUNNING;
+        break;
+    case PAUSED:
+        drawPause();
+        if (IsKeyPressed(KEY_SPACE)) gameState = RUNNING;
+        break;
+    case LOSS:
+        ClearBackground(WHITE);
+        drawCenteredText(TextFormat("You lost! Final Score: %i", finalScore), 0, 0, 30, BLACK);
+        int key;
+        if(key = GetKeyPressed() != 0) {
+            init();
+            gameState = RUNNING;
+        }
+        break;
     default:
-        gameState = RUNNING;
+        gameState = MENU;
         break;
     }
+    
+}
+
+void drawMenu() {
+    ClearBackground(WHITE);
+    DrawText("HELLO WORLD!!!1!!11!!", SIZE/2, SIZE/2, 10, DARKGREEN);
+    
+}
+
+void drawPause() {
+    ClearBackground(LIGHTGRAY);
+    drawCenteredText("Pause!", 0, 0, 30, BLACK);
     
 }
 
@@ -108,9 +139,10 @@ void update() {
         switch(isOccupied(nextHeadPos)) {
             case 0:
                 break;
-            case 1:
-                snakeBody.length = 0;
-                exit(2);
+            case 1: //LOSS
+                finalScore = snakeBody.length;
+                gameState = LOSS;
+                puts("HI1");
                 break;
                 //BUG:
             case -1:
@@ -171,11 +203,11 @@ void init() {
         snakeBody.pos[i].y = (GRID_SIZE)/2; 
     } 
     
-    printf("Snake Body: ");
-    for (int i = 0; i < snakeBody.length; i++)
-    {
-        printf(" %f,%f", snakeBody.pos[i].x, snakeBody.pos[i].y);
-    }
+    // printf("Snake Body: ");
+    // for (int i = 0; i < snakeBody.length; i++)
+    // {
+    //     printf(" %f,%f", snakeBody.pos[i].x, snakeBody.pos[i].y);
+    // }
 
 
     direction = RIGHT;
@@ -281,3 +313,16 @@ Vector2 getValidApplePosition() {
     return randPos;
 }
 
+
+void drawCenteredText(const char* text, int xOffset, int yOffset, int fontSize, Color color) {
+    // 1. Calculate how wide the text is in pixels
+    int textWidth = MeasureText(text, fontSize);
+    
+    // 2. Calculate coordinates
+    // We take the screen middle and subtract half the text size
+    int posX = (GetScreenWidth() / 2) - (textWidth / 2) + xOffset;
+    int posY = (GetScreenHeight() / 2) - (fontSize / 2) + yOffset;
+    
+    // 3. Draw
+    DrawText(text, posX, posY, fontSize, color);
+}

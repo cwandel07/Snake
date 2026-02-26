@@ -20,7 +20,12 @@ int findAppleIndexByPos(Vector2 v);
 Vector2 getValidApplePosition();
 
 enum {
-    MENU,RUNNING,PAUSED
+    MENU,RUNNING,PAUSED,LOSS,WIN
 } gameState;
 
 void draw();
+
+void drawMenu();
+void drawPause();
+
+void drawCenteredText(const char* text, int xOffset, int yOffset, int fontSize, Color color);
