@@ -5,24 +5,29 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define GRID_SIZE 6 // For a 10x10 field, this should be set to 10!
-#define SIZE 400 // SHOULD BE atleast GRID_SIZE * GRID_SIZE
-#define APPLE_COUNT 14
-#define START_LENGTH 3
-int CELL_SIZE = SIZE/GRID_SIZE;
-#define FPS 2.5 // ALWAYS AS A FLOAT!
+
+int GRID_SIZE = 6;// For a 10x10 field, this should be set to 10!
+int SIZE = 400; // SHOULD BE atleast GRID_SIZE * GRID_SIZE
+
+int APPLE_COUNT = 14;
+int START_LENGTH = 3;
+int CELL_SIZE;
+
+float FPS = 2.5f;
 float moveTimer = 0.0f;
 int finalScore = 0;
 
 struct {
-    Vector2 pos[GRID_SIZE*GRID_SIZE];
+    Vector2 *pos;
     int length;
 } snakeBody;
 
-Vector2 applePositions[APPLE_COUNT] = {0,0};
+Vector2 *applePositions;
 
 
 int main() {
+    setupGameDimensions(GRID_SIZE, APPLE_COUNT);
+
     SetRandomSeed(time(NULL));
     
     init(); // Initialize all game values
@@ -36,6 +41,7 @@ int main() {
         EndDrawing();
     }
     CloseWindow();
+    free(snakeBody.pos);
     return 0;
     
 }
@@ -347,6 +353,29 @@ Vector2 getValidApplePosition() {
     return randPos;
 }
 
+void setupGameDimensions(int newGridSize, int appleCount) {
+    applePositions = calloc(appleCount, sizeof(Vector2));
+
+    // 1. If we already had a snake, free the old memory first!
+    if (snakeBody.pos != NULL) {
+        free(snakeBody.pos);
+    }
+
+    // 2. Update your global grid variables
+    GRID_SIZE = newGridSize; 
+    CELL_SIZE = SIZE / GRID_SIZE;
+
+    // 3. Allocate enough space for a "Full Screen" snake
+    int maxSegments = GRID_SIZE * GRID_SIZE;
+    snakeBody.pos = (Vector2 *)malloc(maxSegments * sizeof(Vector2));
+
+    // 4. Safety check
+    if (snakeBody.pos == NULL) {
+        fprintf(stderr, "Failed to allocate memory for snake!\n");
+        exit(1);
+    }
+}
+
 
 void drawCenteredText(const char* text, int xOffset, int yOffset, int fontSize, Color color) {
     // 1. Calculate how wide the text is in pixels
@@ -360,3 +389,5 @@ void drawCenteredText(const char* text, int xOffset, int yOffset, int fontSize, 
     // 3. Draw
     DrawText(text, posX, posY, fontSize, color);
 }
+
+//TODO: Add a Menu for Settings, and make them changeable, maybe with the keyboard? like on a tv
