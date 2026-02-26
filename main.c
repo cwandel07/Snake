@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define GRID_SIZE 10 // For a 10x10 field, this should be set to 10!
+#define GRID_SIZE 20 // For a 10x10 field, this should be set to 10!
 #define SIZE 400 // SHOULD BE atleast GRID_SIZE * GRID_SIZE
 #define APPLE_COUNT 1
 #define START_LENGTH 3
@@ -77,7 +77,7 @@ void draw() {
 
 void drawMenu() {
     ClearBackground(WHITE);
-    DrawText("HELLO WORLD!!!1!!11!!", SIZE/2, SIZE/2, 10, DARKGREEN);
+    DrawText("HELLO WORLD!!!1!!11!!", SIZE/2, SIZE/2, 10, DARKGRAY);
     
 }
 
@@ -258,12 +258,37 @@ void drawApple(Vector2 v) {
 
 
 void drawSnakeBody() {
-    for (int i = 0; i < snakeBody.length; i++)
-    {
+    for (int i = 0; i < snakeBody.length; i++) {
         drawBox(snakeBody.pos[i]);
-        //printf("Drawing %i block at %.0f,%.0f", i, )
     }
-    
+
+    // 1. Get pixel position of the head
+    float hX = snakeBody.pos[0].x * CELL_SIZE;
+    float hY = snakeBody.pos[0].y * CELL_SIZE;
+
+    // 2. Size of the eye rectangles
+    float eyeSize = CELL_SIZE / 6; 
+    float offset = CELL_SIZE / 5; // Distance from the edges
+
+    // 3. Draw eyes based on direction
+    switch (direction) {
+        case UP:
+            DrawRectangle(hX + offset, hY + offset, eyeSize, eyeSize, GRAY);
+            DrawRectangle(hX + CELL_SIZE - offset - eyeSize, hY + offset, eyeSize, eyeSize, GRAY);
+            break;
+        case DOWN:
+            DrawRectangle(hX + offset, hY + CELL_SIZE - offset - eyeSize, eyeSize, eyeSize, GRAY);
+            DrawRectangle(hX + CELL_SIZE - offset - eyeSize, hY + CELL_SIZE - offset - eyeSize, eyeSize, eyeSize, GRAY);
+            break;
+        case LEFT:
+            DrawRectangle(hX + offset, hY + offset, eyeSize, eyeSize, GRAY);
+            DrawRectangle(hX + offset, hY + CELL_SIZE - offset - eyeSize, eyeSize, eyeSize, GRAY);
+            break;
+        case RIGHT:
+            DrawRectangle(hX + CELL_SIZE - offset - eyeSize, hY + offset, eyeSize, eyeSize, GRAY);
+            DrawRectangle(hX + CELL_SIZE - offset - eyeSize, hY + CELL_SIZE - offset - eyeSize, eyeSize, eyeSize, GRAY);
+            break;
+    }
 }
 
 void drawGrid() {
