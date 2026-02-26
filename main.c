@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define GRID_SIZE 20 // For a 10x10 field, this should be set to 10!
+#define GRID_SIZE 6 // For a 10x10 field, this should be set to 10!
 #define SIZE 400 // SHOULD BE atleast GRID_SIZE * GRID_SIZE
-#define APPLE_COUNT 1
+#define APPLE_COUNT 14
 #define START_LENGTH 3
 int CELL_SIZE = SIZE/GRID_SIZE;
-#define FPS 1.5
+#define FPS 2.5 // ALWAYS AS A FLOAT!
 float moveTimer = 0.0f;
 int finalScore = 0;
 
@@ -62,8 +62,15 @@ void draw() {
     case LOSS:
         ClearBackground(WHITE);
         drawCenteredText(TextFormat("You lost! Final Score: %i", finalScore), 0, 0, 30, BLACK);
-        int key;
-        if(key = GetKeyPressed() != 0) {
+        if(GetKeyPressed() != 0) {
+            init();
+            gameState = RUNNING;
+        }
+        break;
+    case WIN:
+        ClearBackground(WHITE);
+        drawCenteredText(TextFormat("YOU WON! \nFinal Score of %i", snakeBody.length), 0,0, 30, GOLD);
+        if(GetKeyPressed() != 0) {
             init();
             gameState = RUNNING;
         }
@@ -84,7 +91,7 @@ void drawMenu() {
 void drawPause() {
     ClearBackground(LIGHTGRAY);
     drawCenteredText("Pause!", 0, 0, 30, BLACK);
-    
+    drawCenteredText(TextFormat("Current Score: %i", snakeBody.length), 0, 40, 30, BLACK);
 }
 
 
@@ -142,11 +149,13 @@ void update() {
             case 1: //LOSS
                 finalScore = snakeBody.length;
                 gameState = LOSS;
-                puts("HI1");
                 break;
                 //BUG:
             case -1:
-                if (snakeBody.length == GRID_SIZE*GRID_SIZE) exit(69); //TODO: Win popup 
+                if (snakeBody.length + APPLE_COUNT >= GRID_SIZE*GRID_SIZE) {
+                    gameState = WIN;
+                    break;
+                }
                 else {
                     snakeBody.length++;
                     snakeBody.pos[snakeBody.length -1] = snakeBody.pos[snakeBody.length-2];
